@@ -1,39 +1,47 @@
-import prisma from "../config/prisma.js";
-import { hashPassword, comparePassword } from "../utils/hash.js";
-import { signToken } from "../utils/jwt.js";
+import bcrypt from "bcrypt"
+import prisma from "../config/prisma.js"
+import { signToken } from "../utils/jwt.js"
 
-export const register = async ({ email, password }) => {
-  const hashed = await hashPassword(password);
+export const register = async ({ name, email, password }) => {
+  const existing = await prisma.user.findUnique({ where: { email } })
+  if (existing) throw new Error("Email sudah terdaftar")
 
-  return prisma.user.create({
-    data: { email, password: hashed },
-  });
-};
+  const passwordHash = await bcrypt.hash(password, 10)
+
+  const user = await prisma.user.create({
+    data: { name, email, passwordHash },
+    select: { id: true, name: true, email: true, plan: true, createdAt: true },
+  })
+
+  const token = signToken({ id: user.id, email: user.email, plan: user.plan })
+  return { user, token }
+}
 
 export const login = async ({ email, password }) => {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error("User not found");
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user) throw new Error("Email atau password salah")
 
-  const valid = await comparePassword(password, user.password);
-  if (!valid) throw new Error("Wrong password");
+  const valid = await bcrypt.compare(password, user.passwordHash)
+  if (!valid) throw new Error("Email atau password salah")
 
-  const token = signToken({ userId: user.id });
-
-  return { token };
-};
+  const token = signToken({ id: user.id, email: user.email, plan: user.plan })
+  const { passwordHash, ...safeUser } = user
+  return { user: safeUser, token }
+}
 
 export const getMe = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
+      name: true,
       email: true,
+      avatarUrl: true,
+      plan: true,
+      createdAt: true,
+      profile: true,
     },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
-};
+  })
+  if (!user) throw new Error("Pengguna tidak ditemukan")
+  return user
+}
