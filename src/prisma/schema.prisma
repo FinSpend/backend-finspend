@@ -13,26 +13,104 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  email        String        @unique
-  password     String
-  createdAt    DateTime      @default(now())
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  avatarUrl    String?
+  plan         String   @default("free")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
+  profile      UserProfile?
+  categories   Category[]
   transactions Transaction[]
+  budgets      Budget[]
+  suggestions  AiSuggestion[]
+  reports      Report[]
+}
+
+model UserProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  monthlyIncome  Int
+  incomeCurrency String   @default("IDR")
+  occupation     String?
+  financialGoals Json     @default("[]")
+  riskProfile    String?
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id        String  @id @default(uuid())
+  userId    String?
+  name      String
+  type      String
+  color     String?
+  icon      String?
+  sortOrder Int     @default(0)
+  isDefault Boolean @default(false)
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
 }
 
 model Transaction {
-  id        Int      @id @default(autoincrement())
-  title     String
-  amount    Decimal
-  type      TransactionType
-  userId    Int
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  userId          String
+  categoryId      String
+  type            String
+  amount          Decimal  @db.Decimal(15, 2)
+  currency        String   @default("IDR")
+  description     String?
+  transactionDate DateTime
+  createdAt       DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
+model Budget {
+  id          String    @id @default(uuid())
+  userId      String
+  categoryId  String
+  limitAmount Decimal   @db.Decimal(15, 2)
+  period      String    @default("monthly")
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+model AiSuggestion {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  content   String
+  metadata  Json?
+  isRead    Boolean  @default(false)
+  isApplied Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  userId      String
+  periodType  String
+  periodStart DateTime
+  periodEnd   DateTime
+  summaryData Json
+  fileUrl     String?
+  status      String   @default("generated")
+  generatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
