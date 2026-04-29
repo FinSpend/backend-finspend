@@ -19,13 +19,13 @@ export const getByUserId = async (userId, filters = {}) => {
 
   return prisma.transaction.findMany({
     where,
-    include: { category: true },
+    include: { category: true, wallet: true },
     orderBy: { transactionDate: "desc" },
   })
 }
 
 export const create = async (userId, data) => {
-  const { categoryId, type, amount, description, transactionDate } = data
+  const { categoryId, walletId, type, amount, description, transactionDate } = data
 
   return prisma.transaction.create({
     data: {
@@ -35,8 +35,9 @@ export const create = async (userId, data) => {
       amount,
       description,
       transactionDate: new Date(transactionDate),
+      ...(walletId && { walletId }),
     },
-    include: { category: true },
+    include: { category: true, wallet: true },
   })
 }
 
@@ -53,7 +54,7 @@ export const update = async (userId, id, data) => {
       ...(data.description !== undefined && { description: data.description }),
       ...(data.transactionDate && { transactionDate: new Date(data.transactionDate) }),
     },
-    include: { category: true },
+    include: { category: true, wallet: true },
   })
 }
 

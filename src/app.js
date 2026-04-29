@@ -10,6 +10,7 @@ import budgetRouter from "./routes/budget.route.js"
 import categoryRouter from "./routes/category.route.js"
 import aiRouter from "./routes/ai.route.js"
 import reportRouter from "./routes/report.route.js"
+import walletRouter from "./routes/wallet.route.js"
 import { errorHandler } from "./middleware/error.middleware.js"
 import { seedDefaults } from "./services/category.service.js"
 
@@ -33,6 +34,7 @@ app.use("/api/budgets", budgetRouter)
 app.use("/api/categories", categoryRouter)
 app.use("/api/ai", aiRouter)
 app.use("/api/reports", reportRouter)
+app.use("/api/wallets", walletRouter)
 
 app.use(errorHandler)
 

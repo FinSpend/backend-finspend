@@ -28,6 +28,8 @@ model User {
   budgets      Budget[]
   suggestions  AiSuggestion[]
   reports      Report[]
+  wallets      Wallet[]
+  transfers    Transfer[]
 }
 
 model UserProfile {
@@ -65,6 +67,7 @@ model Transaction {
   id              String   @id @default(uuid())
   userId          String
   categoryId      String
+  walletId        String?
   type            String
   amount          Decimal  @db.Decimal(15, 2)
   currency        String   @default("IDR")
@@ -72,8 +75,43 @@ model Transaction {
   transactionDate DateTime
   createdAt       DateTime @default(now())
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category Category @relation(fields: [categoryId], references: [id])
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category  @relation(fields: [categoryId], references: [id])
+  wallet   Wallet?   @relation(fields: [walletId], references: [id], onDelete: SetNull)
+}
+
+model Wallet {
+  id             String   @id @default(uuid())
+  userId         String
+  name           String
+  type           String   @default("bank")
+  bankCode       String?
+  color          String?
+  icon           String?
+  initialBalance Decimal  @default(0) @db.Decimal(15, 2)
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  transfersOut Transfer[]    @relation("TransferOut")
+  transfersIn  Transfer[]    @relation("TransferIn")
+}
+
+model Transfer {
+  id           String   @id @default(uuid())
+  userId       String
+  fromWalletId String
+  toWalletId   String
+  amount       Decimal  @db.Decimal(15, 2)
+  note         String?
+  transferDate DateTime
+  createdAt    DateTime @default(now())
+
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromWallet Wallet @relation("TransferOut", fields: [fromWalletId], references: [id], onDelete: Cascade)
+  toWallet   Wallet @relation("TransferIn", fields: [toWalletId], references: [id], onDelete: Cascade)
 }
 
 model Budget {
