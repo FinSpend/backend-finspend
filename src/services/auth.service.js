@@ -53,6 +53,14 @@ export const deleteAccount = async (userId) => {
   ])
 }
 
+export const updateUser = async (userId, { name }) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { name },
+    select: { id: true, name: true, email: true, avatarUrl: true, plan: true, createdAt: true },
+  })
+}
+
 export const getMe = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },

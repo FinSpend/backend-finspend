@@ -69,6 +69,17 @@ export const deleteAccount = async (req, res) => {
   }
 }
 
+export const updateUser = async (req, res) => {
+  try {
+    const { name } = req.body
+    if (!name?.trim()) return errorResponse(res, "Nama tidak boleh kosong", 400)
+    const user = await authService.updateUser(req.user.id, { name: name.trim() })
+    successResponse(res, user, "Profil berhasil diperbarui")
+  } catch (err) {
+    errorResponse(res, err.message, 400)
+  }
+}
+
 export const getMe = async (req, res) => {
   try {
     const user = await authService.getMe(req.user.id)
