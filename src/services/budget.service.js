@@ -1,5 +1,32 @@
 import prisma from "../config/prisma.js"
 
+const getDateRange = (budget) => {
+  const now = new Date()
+
+  if (budget.period === "weekly") {
+    const day = now.getDay() // 0 = Minggu
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - (day === 0 ? 6 : day - 1)) // Senin
+    startOfWeek.setHours(0, 0, 0, 0)
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(startOfWeek.getDate() + 6) // Minggu
+    endOfWeek.setHours(23, 59, 59, 999)
+    return { gte: startOfWeek, lte: endOfWeek }
+  }
+
+  if (budget.period === "custom") {
+    return {
+      gte: budget.startDate,
+      lte: budget.endDate || now,
+    }
+  }
+
+  // default: monthly
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  return { gte: startOfMonth, lte: endOfMonth }
+}
+
 export const getByUserId = async (userId) => {
   const budgets = await prisma.budget.findMany({
     where: { userId, isActive: true },
@@ -7,18 +34,15 @@ export const getByUserId = async (userId) => {
     orderBy: { createdAt: "desc" },
   })
 
-  const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
   const budgetsWithSpent = await Promise.all(
     budgets.map(async (budget) => {
+      const dateRange = getDateRange(budget)
       const transactions = await prisma.transaction.findMany({
         where: {
           userId,
           categoryId: budget.categoryId,
           type: "expense",
-          transactionDate: { gte: startOfMonth, lte: endOfMonth },
+          transactionDate: dateRange,
         },
       })
 

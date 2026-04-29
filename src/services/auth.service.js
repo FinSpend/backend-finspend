@@ -29,6 +29,30 @@ export const login = async ({ email, password }) => {
   return { user: safeUser, token }
 }
 
+export const changePassword = async (userId, { currentPassword, newPassword }) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) throw new Error("Pengguna tidak ditemukan")
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash)
+  if (!valid) throw new Error("Password saat ini salah")
+
+  const passwordHash = await bcrypt.hash(newPassword, 10)
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } })
+}
+
+export const deleteAccount = async (userId) => {
+  // Hapus semua data user secara berurutan (sesuai foreign key dependency)
+  await prisma.$transaction([
+    prisma.aiSuggestion.deleteMany({ where: { userId } }),
+    prisma.report.deleteMany({ where: { userId } }),
+    prisma.transaction.deleteMany({ where: { userId } }),
+    prisma.budget.deleteMany({ where: { userId } }),
+    prisma.userProfile.deleteMany({ where: { userId } }),
+    prisma.category.deleteMany({ where: { userId, isDefault: false } }),
+    prisma.user.delete({ where: { id: userId } }),
+  ])
+}
+
 export const getMe = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
