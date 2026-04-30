@@ -25,3 +25,4 @@ generated/
 
 # misc
 coverage/
+.vercel

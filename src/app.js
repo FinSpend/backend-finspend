@@ -38,10 +38,19 @@ app.use("/api/wallets", walletRouter)
 
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 3001
+// Jalankan hanya saat lokal, bukan di Vercel
+const isLocal = process.env.NODE_ENV !== "production"
 
-app.listen(PORT, async () => {
-  console.log(`✅ Server berjalan di http://localhost:${PORT}`)
+if (isLocal) {
+  const PORT = process.env.PORT || 3001
+  app.listen(PORT, async () => {
+    console.log(`✅ Server berjalan di http://localhost:${PORT}`)
+    await seedDefaults()
+    console.log("✅ Kategori default siap")
+  })
+} else {
+  // Seed saat cold start di Vercel
   await seedDefaults()
-  console.log("✅ Kategori default siap")
-})
+}
+
+export default app // ← ganti module.exports karena pakai ESM
