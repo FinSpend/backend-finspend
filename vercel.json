@@ -2,9 +2,10 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "express",
-  "functions": {
-    "api/index.js": {
-      "runtime": "nodejs20.x"
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
-  }
+  ]
 }

@@ -26,6 +26,9 @@ app.use(cookieParser())
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() })
 })
+app.get('/', (_req, res) => {
+  res.send('Hello Express!')
+})
 
 app.use("/auth", authRouter)
 app.use("/api/profile", profileRouter)
