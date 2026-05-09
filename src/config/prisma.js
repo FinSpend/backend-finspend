@@ -5,9 +5,15 @@ import pg from "pg"
 
 const { Pool } = pg
 
+// Tambahkan validasi
+const databaseUrl = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL
+if (!databaseUrl) {
+  throw new Error("❌ DATABASE_URL atau POSTGRES_PRISMA_URL tidak tersetting!")
+}
+
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_PRISMA_URL,
-  ssl: true,   // cukup ini
+  connectionString: databaseUrl,
+  ssl: process.env.NODE_ENV === "production" ? true : false,
   max: 1
 })
 
