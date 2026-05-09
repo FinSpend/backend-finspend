@@ -13,7 +13,7 @@ if (!databaseUrl) {
 
 const pool = new Pool({
   connectionString: databaseUrl,
-  ssl: process.env.NODE_ENV === "production" ? true : false,
+  ssl: true,
   max: 1
 })
 
