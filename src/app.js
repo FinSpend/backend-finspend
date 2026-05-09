@@ -26,6 +26,9 @@ app.use(cookieParser())
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() })
 })
+app.get('/', (_req, res) => {
+  res.send('Hello Express!')
+})
 
 app.use("/auth", authRouter)
 app.use("/api/profile", profileRouter)
@@ -38,10 +41,14 @@ app.use("/api/wallets", walletRouter)
 
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 3001
+// ✅ hanya untuk LOCAL
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3001
+  app.listen(PORT, async () => {
+    console.log(`✅ Server berjalan di http://localhost:${PORT}`)
+    await seedDefaults()
+    console.log("✅ Kategori default siap")
+  })
+}
 
-app.listen(PORT, async () => {
-  console.log(`✅ Server berjalan di http://localhost:${PORT}`)
-  await seedDefaults()
-  console.log("✅ Kategori default siap")
-})
+export default app
