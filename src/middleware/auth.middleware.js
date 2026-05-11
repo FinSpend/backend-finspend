@@ -2,7 +2,9 @@ import { verifyToken } from "../utils/jwt.js"
 import { errorResponse } from "../utils/response.js"
 
 export const authenticate = (req, res, next) => {
-  const token = req.cookies.token
+  const authHeader = req.headers.authorization
+  const token = req.cookies.token ||
+    (authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null)
   if (!token) return errorResponse(res, "Unauthorized — silakan login terlebih dahulu", 401)
 
   try {

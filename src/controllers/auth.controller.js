@@ -17,7 +17,7 @@ export const register = async (req, res) => {
 
     const { user, token } = await authService.register({ name, email, password })
     res.cookie("token", token, COOKIE_OPTIONS)
-    successResponse(res, user, "Registrasi berhasil", 201)
+    successResponse(res, { user, token }, "Registrasi berhasil", 201)
   } catch (err) {
     errorResponse(res, err.message, 400)
   }
@@ -32,13 +32,13 @@ export const login = async (req, res) => {
 
     const { user, token } = await authService.login({ email, password })
     res.cookie("token", token, COOKIE_OPTIONS)
-    successResponse(res, user, "Login berhasil")
+    successResponse(res, { user, token }, "Login berhasil")
   } catch (err) {
     errorResponse(res, err.message, 401)
   }
 }
 
-export const logout = (req, res) => {
+export const logout = (_req, res) => {
   res.clearCookie("token")
   successResponse(res, null, "Logout berhasil")
 }
