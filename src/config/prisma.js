@@ -13,8 +13,8 @@ if (!databaseUrl) {
 
 const pool = new Pool({
   connectionString: databaseUrl,
-  ssl: true,
-  max: 1
+  ssl: { rejectUnauthorized: false },
+  max: 1,
 })
 
 const adapter = new PrismaPg(pool)
